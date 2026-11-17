@@ -1,7 +1,7 @@
 #include "sensorDistancia.h"
 #include "delay.h"
 
-SR04::SR04(gpio_num_t trigger, gpio_num_t echo)
+SensorDistancia::SensorDistancia(gpio_num_t trigger, gpio_num_t echo)
 {
     pino_TRIGGER = trigger;
     pino_ECHO    = echo;
@@ -13,7 +13,7 @@ SR04::SR04(gpio_num_t trigger, gpio_num_t echo)
     delay_ms(1000);
 }
 
-int64_t SR04::getDist(void)
+int64_t SensorDistancia::getDist(void)
 {
     int64_t t1, t2,tmp;
 

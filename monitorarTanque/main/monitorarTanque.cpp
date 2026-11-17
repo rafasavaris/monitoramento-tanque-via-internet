@@ -18,15 +18,14 @@ extern "C" void app_main() ;
 void app_main()
 {
   int64_t distancia;
+  SensorDistancia meuSensor = SensorDistancia(PIN16, PIN5);
   
   delay_ms(2000);
   printf("\n\nRODANDO\n\n");
-
-  SR04 ultrasom = SR04(PIN16, PIN5);
   
   while (1)
   {
-  	distancia = ultrasom.getDist();
+  	distancia = meuSensor.getDist();
   	printf("Distancia vale %ld centimetros\n",(long)distancia);
   }  
 }
