@@ -1,4 +1,3 @@
-
 #ifndef __DIGITAL__
 #define __DIGITAL__
 

@@ -1,8 +1,8 @@
 #ifndef __sensorDistancia__
 #define __sensorDistancia__
 #include <inttypes.h> 
-#include "digital.h"
-#include "getTime.h"
+#include "../digital/digital.h"
+#include "../time/getTime.h"
 
 class SensorDistancia {
     private:

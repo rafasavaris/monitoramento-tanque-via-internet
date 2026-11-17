@@ -7,9 +7,9 @@
 
 #include <inttypes.h> 
 
-#include "sensorDistancia.h"
-#include "delay.h"
-#include "digital.h"
+#include "sensor/sensorDistancia.h"
+#include "delay/delay.h"
+#include "digital/digital.h"
 
 
 extern "C" void app_main() ;

@@ -1,5 +1,5 @@
 #include "sensorDistancia.h"
-#include "delay.h"
+#include "../delay/delay.h"
 
 SensorDistancia::SensorDistancia(gpio_num_t trigger, gpio_num_t echo)
 {
