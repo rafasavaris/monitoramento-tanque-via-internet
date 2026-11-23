@@ -2,121 +2,142 @@
 #include <string.h>
 
 #include "mqtt.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/event_groups.h"
 
 #define MQTT_CONNECTED_BIT BIT0
 
-static EventGroupHandle_t mqtt_event_group;
-
-
-MQTT::MQTT(const char* broker, SensorDistancia* sensor,
-           float alturaTanque, float areaTanque)
+MQTT::MQTT(const char* broker)
 {
-    this->broker = broker;
-    this->sensor = sensor;
-    this->alturaTanque = alturaTanque;
-    this->areaTanque = areaTanque;
+    if (strstr(broker, "://") == NULL) {
+        snprintf(
+            this->broker,
+            sizeof(this->broker),
+            "mqtt://%s",
+            broker
+        );
+    } else {
+        snprintf(
+            this->broker,
+            sizeof(this->broker),
+            "%s",
+            broker
+        );
+    }
 
-    this->topico = NULL;
-    this->client = NULL;
+    client = NULL;
+    funcaoHandler = NULL;
 
     mqtt_event_group = xEventGroupCreate();
+
+    configASSERT(mqtt_event_group != NULL);
 }
 
-void MQTT::mqtt_event_handler(void* handler_args, esp_event_base_t base,
-                              int32_t event_id, void* event_data)
+void MQTT::mqtt_event_handler(
+    void* handler_args,
+    esp_event_base_t base,
+    int32_t event_id,
+    void* event_data
+)
 {
-    MQTT* mqtt = (MQTT*) handler_args;
-    esp_mqtt_event_handle_t event = (esp_mqtt_event_handle_t) event_data;
+    MQTT* mqtt = (MQTT*)handler_args;
+
+    esp_mqtt_event_handle_t event =
+        (esp_mqtt_event_handle_t)event_data;
 
     switch (event->event_id) {
+
         case MQTT_EVENT_CONNECTED:
+
             printf("MQTT conectado!\n");
-            xEventGroupSetBits(mqtt_event_group, MQTT_CONNECTED_BIT);
+
+            xEventGroupSetBits(
+                mqtt->mqtt_event_group,
+                MQTT_CONNECTED_BIT
+            );
+
             break;
 
         case MQTT_EVENT_DISCONNECTED:
+
             printf("MQTT desconectado!\n");
-            xEventGroupClearBits(mqtt_event_group, MQTT_CONNECTED_BIT);
+
+            xEventGroupClearBits(
+                mqtt->mqtt_event_group,
+                MQTT_CONNECTED_BIT
+            );
+
             break;
 
-        case MQTT_EVENT_DATA:
-            printf("Mensagem recebida:\n");
-            printf("Topico: %.*s\n", event->topic_len, event->topic);
-            printf("Dados: %.*s\n", event->data_len, event->data);
+        case MQTT_EVENT_DATA: {
+
+            printf("Mensagem recebida!\n");
+
+            printf(
+                "Topico: %.*s\n",
+                event->topic_len,
+                event->topic
+            );
+
+            printf(
+                "Dados: %.*s\n",
+                event->data_len,
+                event->data
+            );
 
             char dados[200];
 
-            if (event->data_len < sizeof(dados)) {
-                memcpy(dados, event->data, event->data_len);
+            if (
+                event->current_data_offset == 0 &&
+                event->data_len == event->total_data_len &&
+                event->data_len < sizeof(dados)
+            ) {
+
+                memcpy(
+                    dados,
+                    event->data,
+                    event->data_len
+                );
+
                 dados[event->data_len] = '\0';
-                mqtt->tratarMensagem(dados);
+
+                if (mqtt->funcaoHandler != NULL) {
+                    mqtt->funcaoHandler(dados);
+                }
             }
+
             break;
+        }
 
         default:
-            printf("Evento MQTT id: %d\n", event->event_id);
+
+            printf(
+                "Evento MQTT id: %ld\n",
+                (long)event->event_id
+            );
+
             break;
-    }
-}
-
-void MQTT::tratarMensagem(const char* mensagem)
-{
-    char buffer[100];
-
-    if (strcmp(mensagem, "leia distancia") == 0) {
-        float distancia = sensor->getDist();
-        sprintf(buffer, "Distancia: %.2f cm", distancia);
-        pub("grupo1_tanque", buffer);
-    }
-
-    else if (strcmp(mensagem, "leia altura") == 0) {
-        float distancia = sensor->getDist();
-        float altura = alturaTanque - distancia;
-
-        if (altura < 0)
-            altura = 0;
-
-        sprintf(buffer, "Altura: %.2f cm", altura);
-        pub("grupo1_tanque", buffer);
-
-    }
-
-    else if (strcmp(mensagem, "leia litros") == 0) {
-        float distancia = sensor->getDist();
-        float altura = alturaTanque - distancia;
-
-        if (altura < 0)
-            altura = 0;
-
-        float litros = (areaTanque * altura) / 1000.0;
-
-        sprintf(buffer, "Quantidade: %.2f litros", litros);
-        pub("grupo1_tanque", buffer);
-
-    }
-
-    else {
-        printf("Comando desconhecido: %s\n", mensagem);
     }
 }
 
 void MQTT::sub(const char* topico)
 {
-    this->topico = topico;
     esp_mqtt_client_config_t mqtt_cfg = {};
     mqtt_cfg.broker.address.uri = broker;
     client = esp_mqtt_client_init(&mqtt_cfg);
 
-    ESP_ERROR_CHECK(esp_mqtt_client_register_event(
-        client,
-        MQTT_EVENT_ANY,
-        mqtt_event_handler,
-        this
-    ));
+    configASSERT(client != NULL);
 
-    ESP_ERROR_CHECK(esp_mqtt_client_start(client));
+    ESP_ERROR_CHECK(
+        esp_mqtt_client_register_event(
+            client,
+            MQTT_EVENT_ANY,
+            mqtt_event_handler,
+            this
+        )
+    );
+
+    ESP_ERROR_CHECK(
+        esp_mqtt_client_start(client)
+    );
 
     printf("Aguardando conexao MQTT...\n");
 
@@ -128,25 +149,57 @@ void MQTT::sub(const char* topico)
         portMAX_DELAY
     );
 
-    ESP_ERROR_CHECK(esp_mqtt_client_subscribe(client, topico, 0));
+    printf("Conexao MQTT estabelecida!\n");
+
+    int msg_id = esp_mqtt_client_subscribe(
+        client,
+        topico,
+        0
+    );
+
+    if (msg_id < 0) {
+        printf("Erro ao se inscrever no topico!\n");
+        return;
+    }
+
     printf("Inscrito no topico: %s\n", topico);
 }
 
-void MQTT::subHandler()
+void MQTT::subHandler(void (*funcao)(const char*))
 {
-    printf("Tratamento de mensagens MQTT configurado!\n");
+    funcaoHandler = funcao;
+
+    printf("Funcao de tratamento MQTT configurada!\n");
 }
 
 void MQTT::pub(const char* topico, const char* mensagem)
 {
-    if (client == NULL)
+    if (client == NULL) {
+        printf("Cliente MQTT nao inicializado!\n");
         return;
+    }
 
-    if (!(xEventGroupGetBits(mqtt_event_group) & MQTT_CONNECTED_BIT)) {
+    if (
+        !(xEventGroupGetBits(mqtt_event_group) &
+        MQTT_CONNECTED_BIT)
+    ) {
         printf("MQTT desconectado!\n");
         return;
     }
 
-    esp_mqtt_client_publish(client, topico, mensagem, 0, 1, 0);
+    int msg_id = esp_mqtt_client_publish(
+        client,
+        topico,
+        mensagem,
+        0,
+        1,
+        0
+    );
+
+    if (msg_id < 0) {
+        printf("Erro ao publicar mensagem!\n");
+        return;
+    }
+
     printf("Mensagem publicada: %s\n", mensagem);
 }

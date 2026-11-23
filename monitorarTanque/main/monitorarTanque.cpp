@@ -11,9 +11,44 @@
 #include "delay/delay.h"
 #include "digital/digital.h"
 
-
 extern "C" void app_main() ;
 
+/*
+void minhaFuncao(const char* mensagem)
+{
+    char buffer[100];
+
+    if (strcmp(mensagem, "leia altura") == 0) {
+        float distancia = meuSensor->getDist();
+        float altura = meuTanque->getAlturaColuna(distancia);
+
+        if (altura < 0) {
+            printf("Erro na leitura do sensor!\n");
+            return;
+        }
+
+        snprintf(buffer, sizeof(buffer), "%.2f", altura);
+        meuMqtt->pub("grupo1_tanque", buffer);
+    }
+
+    else if (strcmp(mensagem, "leia litros") == 0) {
+        float distancia = meuSensor->getDist();
+        float litros = meuTanque->getLitros(distancia);
+
+        if (litros < 0) {
+            printf("Erro no calculo do volume!\n");
+            return;
+        }
+
+        snprintf(buffer, sizeof(buffer), "%.2f", litros);
+        meuMqtt->pub("grupo1_tanque", buffer);
+    }
+
+    else {
+        printf("Comando desconhecido: %s\n", mensagem);
+    }
+}
+    */
 
 void app_main()
 {

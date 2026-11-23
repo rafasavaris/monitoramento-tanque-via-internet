@@ -2,27 +2,30 @@
 #define MQTT_H
 
 #include "mqtt_client.h"
-#include "sensorDistancia.h"
+#include "esp_event.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/event_groups.h"
 
 class MQTT {
 private:
-    const char* broker;
-    const char* topico;
+    char broker[128];
+
     esp_mqtt_client_handle_t client;
+    EventGroupHandle_t mqtt_event_group;
 
-    SensorDistancia* sensor;
+    void (*funcaoHandler)(const char*);
 
-    float alturaTanque;
-    float areaTanque;
-
-    static void mqtt_event_handler(void* handler_args, esp_event_base_t base,
-                                   int32_t event_id, void* event_data);
-    void tratarMensagem(const char* mensagem);
+    static void mqtt_event_handler(
+        void* handler_args,
+        esp_event_base_t base,
+        int32_t event_id,
+        void* event_data
+    );
 
 public:
-    MQTT(const char* broker, SensorDistancia* sensor, float alturaTanque, float areaTanque);
+    MQTT(const char* broker);
     void sub(const char* topico);
-    void subHandler();
+    void subHandler(void (*funcao)(const char*));
     void pub(const char* topico, const char* mensagem);
 };
 
