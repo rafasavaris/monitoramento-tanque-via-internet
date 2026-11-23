@@ -10,8 +10,14 @@
 #include "sensor/sensorDistancia.h"
 #include "delay/delay.h"
 #include "digital/digital.h"
+#include "tanque/tanque.h"
+#include "mqtt/mqtt.h"
+#include "wifi/wifi.h"
+#include "time/getTime.h"
 
 extern "C" void app_main() ;
+
+char url_broker = "grupo_rm"
 
 /*
 void minhaFuncao(const char* mensagem)
@@ -28,7 +34,7 @@ void minhaFuncao(const char* mensagem)
         }
 
         snprintf(buffer, sizeof(buffer), "%.2f", altura);
-        meuMqtt->pub("grupo1_tanque", buffer);
+        meuMqtt->pub(grupo_rm, buffer);
     }
 
     else if (strcmp(mensagem, "leia litros") == 0) {
@@ -41,7 +47,7 @@ void minhaFuncao(const char* mensagem)
         }
 
         snprintf(buffer, sizeof(buffer), "%.2f", litros);
-        meuMqtt->pub("grupo1_tanque", buffer);
+        meuMqtt->pub(grupo_rm, buffer);
     }
 
     else {

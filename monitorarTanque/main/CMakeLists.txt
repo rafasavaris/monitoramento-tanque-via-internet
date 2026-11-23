@@ -10,12 +10,6 @@ idf_component_register(
 
     INCLUDE_DIRS
         "."
-        "time"
-        "sensor"
-        "digital"
-        "tanque"
-        "wifi"
-        "mqtt"
 
     REQUIRES
         mqtt
