@@ -1,18 +1,21 @@
 #ifndef __sensorDistancia__
 #define __sensorDistancia__
-#include <inttypes.h> 
-#include "../digital/digital.h"
-#include "../time/getTime.h"
+#include <stdint.h>
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 
 class SensorDistancia {
     private:
-        gpio_num_t pino_TRIGGER;
-        gpio_num_t pino_ECHO;
-        getTime tempo;
+        int gpioTrig;
+        int gpioEcho;
+        QueueHandle_t gpio_evt_queue;
+        static void IRAM_ATTR tratador_int_externa(void *args);
+
+    void configurar();
          
     public:
-        SensorDistancia(gpio_num_t trigger, gpio_num_t echo);
-        int64_t getDist(void);
+        SensorDistancia(int trig, int echo);
+        float getDist();
 };
 
 #endif

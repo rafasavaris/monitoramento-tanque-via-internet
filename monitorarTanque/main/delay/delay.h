@@ -1,11 +1,15 @@
-#ifndef __DELAY__
-#define __DELAY__
+#ifndef __TEMPO__
+#define __TEMPO__
 
+#include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_rom_sys.h"
+#include "esp_system.h"
+#include "esp_timer.h"
+#include <rom/ets_sys.h>
 
-#define delay_us(A) esp_rom_delay_us(A)
-#define delay_ms(A) vTaskDelay(pdMS_TO_TICKS(A))
+#define delay_us(A) ets_delay_us(A)
+#define delay_ms(A) vTaskDelay(A/portTICK_PERIOD_MS)
+#define getTime()   esp_timer_get_time()
 
 #endif

@@ -16,8 +16,9 @@
 #include "time/getTime.h"
 
 extern "C" void app_main() ;
-
-char url_broker = "grupo_rm"
+#define GPIO_TRIG 23
+#define GPIO_ECHO 22
+char url_broker[9] = "grupo_rm";
 
 /*
 void minhaFuncao(const char* mensagem)
@@ -58,15 +59,15 @@ void minhaFuncao(const char* mensagem)
 
 void app_main()
 {
-  int64_t distancia;
-  SensorDistancia meuSensor = SensorDistancia(PIN16, PIN5);
-  
-  delay_ms(2000);
-  printf("\n\nRODANDO\n\n");
-  
-  while (1)
-  {
-  	distancia = meuSensor.getDist();
-  	printf("Distancia vale %ld centimetros\n",(long)distancia);
-  }  
+  SensorDistancia sensor(GPIO_TRIG, GPIO_ECHO);
+
+    printf("INICIO\n");
+
+    while (1)
+    {
+        printf("Mede a distancia\n");
+        float d = sensor.getDist();
+        printf("Distancia = %.2f cm\n", d);
+        delay_ms(1000);
+    }
 }
