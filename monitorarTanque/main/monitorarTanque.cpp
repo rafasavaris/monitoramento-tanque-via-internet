@@ -13,13 +13,12 @@
 #define GPIO_ECHO 22
 
 #define BROKER "mqtt://broker.emqx.io:1883"
-#define TOPICO_COMANDOS "grupo1_comandos"
+#define TOPICO_COMANDOS "grupo_rm"
 #define TOPICO_TANQUE "grupo_rm"
 
 SensorDistancia* meuSensor;
 Tanque* meuTanque;
 MQTT* meuMqtt;
-
 
 void minhaFuncao(const char* mensagem)
 {
@@ -72,7 +71,7 @@ extern "C" void app_main()
     meuSensor = &sensor;
 
     printf("2 - Criando WiFi\n");
-    WIFI meuWifi("rafa", "12345678");
+    WIFI meuWifi("teste_planta_piloto", "12701@LPA");
     printf("3 - Iniciando WiFi\n");
     meuWifi.iniciar();
     printf("4 - WiFi conectado!\n");
