@@ -4,7 +4,6 @@
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_system.h"
 #include "esp_timer.h"
 #include <rom/ets_sys.h>
 

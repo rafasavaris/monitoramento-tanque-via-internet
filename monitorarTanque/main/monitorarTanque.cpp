@@ -8,6 +8,7 @@
 #include "tanque/tanque.h"
 #include "mqtt/mqtt.h"
 #include "wifi/wifi.h"
+#include "delay/delay.h"
 
 #define GPIO_TRIG 23
 #define GPIO_ECHO 22
@@ -89,6 +90,6 @@ extern "C" void app_main()
     printf("7 - MQTT conectado!\n");
 
     while (1) {
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        delay_ms(500);
     }
 }
