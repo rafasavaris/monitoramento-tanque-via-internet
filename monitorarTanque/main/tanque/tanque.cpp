@@ -1,4 +1,5 @@
 #include "tanque.h"
+#include <stdio.h>
 
 Tanque::Tanque(float altura, float area)
 {
@@ -8,8 +9,6 @@ Tanque::Tanque(float altura, float area)
 
 float Tanque::getAlturaColuna(float distancia)
 {
-    if (distancia < 0) { return -1.0f; }
-
     float alturaAgua = alturaTanque - distancia;
 
     if (alturaAgua < 0) {

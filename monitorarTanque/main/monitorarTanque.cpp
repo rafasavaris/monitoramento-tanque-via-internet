@@ -1,31 +1,38 @@
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
-#include <sys/time.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include <inttypes.h> 
-
 #include "sensor/sensorDistancia.h"
-#include "delay/delay.h"
-#include "digital/digital.h"
 #include "tanque/tanque.h"
 #include "mqtt/mqtt.h"
 #include "wifi/wifi.h"
-#include "time/getTime.h"
 
-extern "C" void app_main() ;
 #define GPIO_TRIG 23
 #define GPIO_ECHO 22
-char url_broker[9] = "grupo_rm";
 
-/*
+#define BROKER "mqtt://broker.emqx.io:1883"
+#define TOPICO_COMANDOS "grupo1_comandos"
+#define TOPICO_TANQUE "grupo_rm"
+
+SensorDistancia* meuSensor;
+Tanque* meuTanque;
+MQTT* meuMqtt;
+
+
 void minhaFuncao(const char* mensagem)
 {
     char buffer[100];
 
-    if (strcmp(mensagem, "leia altura") == 0) {
+    if (strcmp(mensagem, "leia distancia") == 0) {
+        float distancia = meuSensor->getDist();
+
+        snprintf(buffer, sizeof(buffer), "%.2f", distancia);
+        meuMqtt->pub(TOPICO_TANQUE, buffer);
+    }
+
+    else if (strcmp(mensagem, "leia altura") == 0) {
         float distancia = meuSensor->getDist();
         float altura = meuTanque->getAlturaColuna(distancia);
 
@@ -35,7 +42,7 @@ void minhaFuncao(const char* mensagem)
         }
 
         snprintf(buffer, sizeof(buffer), "%.2f", altura);
-        meuMqtt->pub(grupo_rm, buffer);
+        meuMqtt->pub(TOPICO_TANQUE, buffer);
     }
 
     else if (strcmp(mensagem, "leia litros") == 0) {
@@ -48,26 +55,41 @@ void minhaFuncao(const char* mensagem)
         }
 
         snprintf(buffer, sizeof(buffer), "%.2f", litros);
-        meuMqtt->pub(grupo_rm, buffer);
+        meuMqtt->pub(TOPICO_TANQUE, buffer);
     }
 
     else {
         printf("Comando desconhecido: %s\n", mensagem);
     }
 }
-    */
 
-void app_main()
+
+extern "C" void app_main()
 {
-  SensorDistancia sensor(GPIO_TRIG, GPIO_ECHO);
+    printf("1 - Inicializando sensor\n");
 
-    printf("INICIO\n");
+    SensorDistancia sensor(GPIO_TRIG, GPIO_ECHO);
+    meuSensor = &sensor;
 
-    while (1)
-    {
-        printf("Mede a distancia\n");
-        float d = sensor.getDist();
-        printf("Distancia = %.2f cm\n", d);
-        delay_ms(1000);
+    printf("2 - Criando WiFi\n");
+    WIFI meuWifi("rafa", "12345678");
+    printf("3 - Iniciando WiFi\n");
+    meuWifi.iniciar();
+    printf("4 - WiFi conectado!\n");
+
+    printf("5 - Criando tanque\n");
+    Tanque tanque(9.0f, 113.1f);
+    meuTanque = &tanque;
+
+    printf("6 - Inicializando MQTT\n");
+    MQTT mqtt(BROKER);
+    meuMqtt = &mqtt;
+
+    mqtt.subHandler(minhaFuncao);
+    mqtt.sub(TOPICO_COMANDOS);
+    printf("7 - MQTT conectado!\n");
+
+    while (1) {
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }
